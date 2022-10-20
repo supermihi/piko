@@ -12,7 +12,7 @@ dependencies = [
     "fastapi>=0.85.1",
     "uvicorn>=0.18.3",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 
 [build-system]
