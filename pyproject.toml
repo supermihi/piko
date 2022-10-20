@@ -29,3 +29,6 @@ verify_ssl = true
 
 [tool.pdm.dev-dependencies]
 dev = []
+
+[tool.pdm.scripts]
+web = "uvicorn pikoapi:app --reload --log-level warning"

@@ -12,7 +12,3 @@ def get_live_data(hostname: str = 'piko', values: Iterable[PikoValue] = None) ->
     ans = data.json()['dxsEntries']
     return {values_by_id[obj['dxsId']]: obj['value'] for obj in ans}
 
-
-ld = get_live_data('piko', all_values)
-for val in all_values:
-    print(val.format(ld[val]))

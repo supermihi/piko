@@ -1,0 +1,21 @@
+<html>
+    <body>
+        <script>
+            async function fetchAndUpdate() {
+                const result = await fetch("/live")
+                const js = await result.json()
+                for (const key in js) {
+                    const element = document.getElementById(key)
+                    if (element !== null) {
+                        element.textContent = js[key].toLocaleString(undefined, {maximumFractionDigits: 0})
+                    }
+                }
+            }
+            fetchAndUpdate()
+            setInterval(fetchAndUpdate, 1000)
+        </script>
+        <p>Current: <span id="P AC">not loaded</span>&nbsp;W</p>
+        <p>Day: <span id="W AC (day)">not loaded</span>&nbsp;Wh</p>
+        <p>Total: <span id="W AC (total)">not loaded</span>&nbsp;kWh</p>
+    </body>
+</html>
