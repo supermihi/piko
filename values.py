@@ -1,18 +1,81 @@
+import inspect
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Union
-import inspect
+from numbers import Number
+from typing import Type, Any
+
+"""
+Zur Info.
+
+//Leistungswerte
+    ID_DCEingangGesamt = 33556736;         // in W
+    ID_Ausgangsleistung = 67109120;        // in W
+    ID_Eigenverbrauch = 83888128;          // in W
+    //Status
+    ID_Status = 16780032;                  // 0:Off
+    //Statistik - Tag
+    ID_Ertrag_d = 251658754;               // in Wh
+    ID_Hausverbrauch_d = 251659010;        // in Wh
+    ID_Eigenverbrauch_d = 251659266;       // in Wh
+    ID_Eigenverbrauchsquote_d = 251659278; // in %
+    ID_Autarkiegrad_d = 251659279;         // in %
+    //Statistik - Gesamt
+    ID_Ertrag_G = 251658753;               // in kWh
+    ID_Hausverbrauch_G = 251659009;        // in kWh
+    ID_Eigenverbrauch_G = 251659265;       // in kWh
+    ID_Eigenverbrauchsquote_G = 251659280; // in %
+    ID_Autarkiegrad_G = 251659281;         // in %
+    ID_Betriebszeit = 251658496;           // in h
+    //Momentanwerte - PV Genertor
+    ID_DC1Spannung = 33555202;             // in V
+    ID_DC1Strom = 33555201;                // in A
+    ID_DC1Leistung = 33555203;             // in W
+    ID_DC2Spannung = 33555458;             // in V
+    ID_DC2Strom = 33555457;                // in A
+    ID_DC2Leistung = 33555459;             // in W
+    //Momentanwerte Haus
+    ID_HausverbrauchSolar = 83886336;      // in W
+    ID_HausverbrauchBatterie = 83886592;   // in W
+    ID_HausverbrauchNetz = 83886848;       // in W
+    ID_HausverbrauchPhase1 = 83887106;     // in W
+    ID_HausverbrauchPhase2 = 83887362;     // in W
+    ID_HausverbrauchPhase3 = 83887618;     // in W
+    //Netz Netzparameter
+    ID_NetzAusgangLeistung = 67109120;     // in W
+    ID_NetzFrequenz = 67110400;            // in Hz
+    ID_NetzCosPhi = 67110656;
+    //Netz Phase 1
+    ID_P1Spannung = 67109378;              // in V
+    ID_P1Strom = 67109377;                 // in A
+    ID_P1Leistung = 67109379;              // in W
+    //Netz Phase 2
+    ID_P2Spannung = 67109634;              // in V
+    ID_P2Strom = 67109633;                 // in A
+    ID_P2Leistung = 67109635;              // in W
+    //Netz Phase 3
+    ID_P3Spannung = 67109890;              // in V
+    ID_P3Strom = 67109889;                 // in A
+    ID_P3Leistung = 67109891;              // in W 
+https://forum.fhem.de/index.php?PHPSESSID=ft1pbll7cqjpbhh7plp2l8slao&msg=677942  
+"""
 
 
 @dataclass(frozen=True)
 class PikoValue:
     name: str
     dxsNr: int
-    unit: Union[str, Enum] = ''
+    unit: str | None = None
+    phase: int | None = None
+    parse: Callable[[float], Any] = lambda v: v
+
+    @property
+    def full_name(self):
+        return self.name if self.phase is None else f'{self.name}_phase_{self.phase}'
 
     def format(self, value):
-        unit = self.unit(value).name if inspect.isclass(self.unit) and issubclass(self.unit, Enum) else self.unit
-        return f'{self.name:8s}= {value:g} {unit}'
+        fmt_value = f'{value:g}' if isinstance(value, Number) else value
+        return f'{self.full_name:16s} = {fmt_value} {self.unit or ""}'
 
 
 class PikoStatus(Enum):
@@ -24,28 +87,35 @@ class PikoStatus(Enum):
     Einspeisen = 5
 
 
-dc_u_1 = PikoValue('U DC 1', 33555202, 'V')
-dc_i_1 = PikoValue('I DC 1', 33555201, 'A')
-dc_p_1 = PikoValue('P DC 1', 33555203, 'W')
+def per_phase(name: str, unit: str | None, dxs_phase_1: int, dxs_phase_2: int, dxs_phase_3: int) -> tuple[
+    PikoValue, PikoValue, PikoValue]:
+    p1, p2, p3 = [PikoValue(name, dxs, unit, phase=i) for i, dxs in
+                  enumerate([dxs_phase_1, dxs_phase_2, dxs_phase_3], start=1)]
+    return p1, p2, p3
 
-dc_u_2 = PikoValue('U DC 2', 33555458, 'V')
-dc_i_2 = PikoValue('I DC 2', 33555457, 'A')
-dc_p_2 = PikoValue('P DC 2', 33555459, 'W')
 
-dc_u_3 = PikoValue('U DC 3', 33555714, 'V')
-dc_i_3 = PikoValue('I DC 3', 33555713, 'A')
-dc_p_3 = PikoValue('P DC 3', 33555715, 'W')
+dc_phase_voltage = per_phase('DC_voltage', 'U', 33555202, 33555458, 33555714)
+dc_phase_current = per_phase('DC_current', 'I', 33555201, 33555457, 33555713)
+dc_phase_power = per_phase('DC_power', 'W', 33555203, 33555459, 33555715)
 
-dc_p = PikoValue('P DC', 33556736, 'W')
+dc_power_total = PikoValue('DC_power_total', 33556736, 'W')
 
-ac_p = PikoValue('P AC', 67109120, 'W')
+ac_power_total = PikoValue('AC_power_total', 67109120, 'W')
 
-ac_cos_phi = PikoValue('cos φ', 67110656)
-status = PikoValue('Status', 16780032, PikoStatus)
-ac_freq = PikoValue('freq', 67110400, 'Hz')
+ac_phase_power = per_phase('AC_power', 'W', 67109379, 67109635, 67109891)
+ac_phase_current = per_phase('AC_current', 'A', 67109377, 67109633, 67109889)
+ac_phase_voltage = per_phase('AC_voltage', 'V', 67109378, 67109634, 67109890)
 
-ac_w_total = PikoValue('W AC (total)', 251658753, 'kWh')
-ac_w_day = PikoValue('W AC (day)', 251658754, 'Wh')
+ac_cos_phi = PikoValue('cos_phi', 67110656)
+status = PikoValue('status', 16780032, parse=PikoStatus)
+ac_frequency = PikoValue('frequency', 67110400, 'Hz')
 
-all = [dc_u_1, dc_i_1, dc_p_1, dc_u_2, dc_i_2, dc_p_2, dc_u_3, dc_i_3, dc_p_3, dc_p, ac_p, ac_cos_phi, status, ac_freq,
-       ac_w_total, ac_w_day]
+ac_energy_total = PikoValue('AC_energy_total', 251658753, 'kWh')
+ac_energy_day = PikoValue('AC_energy_day', 251658754, 'Wh')
+operating_time = PikoValue('operating_time', 251658496, 'h')
+
+ALL_VALUES = [*dc_phase_voltage, *dc_phase_current, *dc_phase_power, dc_power_total, *ac_phase_voltage, *ac_phase_power,
+              *ac_phase_current, ac_power_total,
+              ac_cos_phi, status, ac_frequency,
+              ac_energy_total, ac_energy_day,
+              operating_time]
