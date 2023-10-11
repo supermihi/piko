@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "piko"
+name = "piko-classic-api"
 version = "0.1.0"
 description = ""
 authors = ["Michael Helmling <michaelhelmling@posteo.de>"]
@@ -15,3 +15,6 @@ click = "^8.1.7"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+cli = 'piko_classic_api.cli:cli'

@@ -10,7 +10,7 @@ default_password = 'pvwr'
 
 
 def read_total_log():
-    logfile_names = sorted(Path('.').resolve().glob('logdata-*.dat'))
+    logfile_names = sorted(Path('..').resolve().glob('logdata-*.dat'))
     logfiles = [read_logdata(fn) for fn in logfile_names]
     log = pd.concat(logfiles)
     log = log.loc[~log.index.duplicated(keep='first')]

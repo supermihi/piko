@@ -1,4 +1,4 @@
-import livedata
+from piko_classic_api import livedata
 
 from pathlib import Path
 from fastapi import FastAPI
@@ -22,5 +22,5 @@ def read_live():
 
 @app.get("/", response_class=HTMLResponse)
 def get_root():
-    html = Path('./index.html')
+    html = Path('../index.html')
     return html.read_text()

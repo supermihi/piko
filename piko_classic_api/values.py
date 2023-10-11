@@ -1,9 +1,8 @@
-import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from numbers import Number
-from typing import Type, Any
+from typing import Any
 
 """
 Zur Info.

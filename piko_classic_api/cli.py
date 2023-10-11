@@ -1,11 +1,14 @@
-import pprint
-
 import click
 
-from livedata import get_live_data
+from piko_classic_api.livedata import get_live_data
 
 
-@click.command
+@click.group
+def cli():
+    pass
+
+
+@cli.command
 @click.argument('host')
 def get(host):
     ld = get_live_data(host)
@@ -14,4 +17,4 @@ def get(host):
 
 
 if __name__ == '__main__':
-    get()
+    cli()

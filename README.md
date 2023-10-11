@@ -8,3 +8,8 @@ This little project contains utilities to fetch and process that data in an auto
 
 ## Project Status
 Work in progress. You may find it useful, though.
+
+
+## Getting Started
+- install (using poetry)
+- run `poetry run cli`
