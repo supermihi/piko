@@ -1,6 +1,5 @@
 import enum
 import inspect
-import itertools
 from collections.abc import Sequence
 
 from prometheus_client import Enum, Gauge
@@ -9,17 +8,16 @@ from piko_classic_api import livedata
 from piko_classic_api.values import PikoValue, ALL_VALUES, ac_energy_day
 
 name_label = 'name'
-phase_label = 'phase'
 
 
 def create_metric(value: PikoValue):
     label_names = [name_label]
-    if value.phase is not None:
-        label_names.append(phase_label)
+    if value.wire_data is not None:
+        label_names.append(value.wire_data[0])
     if value.parse is not None and inspect.isclass(value.parse) and issubclass(value.parse, enum.Enum):
-        return Enum(value.name, value.name, label_names, states=[p.name for p in value.parse])
+        return Enum(value.name, value.description, label_names, states=[p.name for p in value.parse])
     else:
-        return Gauge(value.name, value.name, label_names)
+        return Gauge(value.name, value.description, label_names)
 
 
 class PikoClassicMetrics:
@@ -38,8 +36,8 @@ class PikoClassicMetrics:
         for piko_value, result in results.items():
             metric = self.metrics[piko_value.name]
             labels = [self.hostname]
-            if piko_value.phase is not None:
-                labels.append(piko_value.phase)
+            if piko_value.wire_data is not None:
+                labels.append(piko_value.wire_data[1])
             if isinstance(metric, Gauge):
                 metric.labels(*labels).set(result)
             else:

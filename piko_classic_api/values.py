@@ -65,12 +65,21 @@ class PikoValue:
     name: str
     dxsNr: int
     unit: str | None = None
-    phase: int | None = None
+    wire_data: tuple[str, int] | None = None
     parse: Callable[[float], Any] = lambda v: v
 
     @property
+    def description(self):
+        unit_suffix = '' if self.unit is None else f' (in {self.unit})'
+        return f'{self.name.replace("_", " ")}{unit_suffix}'
+
+    @property
     def full_name(self):
-        return self.name if self.phase is None else f'{self.name}_phase_{self.phase}'
+        if self.wire_data is None:
+            return self.name
+
+        wire_name, value = self.wire_data
+        return f'{self.name}_{wire_name}_{value}'
 
     def format(self, value):
         fmt_value = f'{value:g}' if isinstance(value, Number) else value
@@ -86,24 +95,24 @@ class PikoStatus(Enum):
     Einspeisen = 5
 
 
-def per_phase(name: str, unit: str | None, dxs_phase_1: int, dxs_phase_2: int, dxs_phase_3: int) -> tuple[
+def per_wire(name: str, unit: str | None, wire_label: str, dxs_wire_1: int, dxs_wire_2: int, dxs_wire_3: int) -> tuple[
     PikoValue, PikoValue, PikoValue]:
-    p1, p2, p3 = [PikoValue(name, dxs, unit, phase=i) for i, dxs in
-                  enumerate([dxs_phase_1, dxs_phase_2, dxs_phase_3], start=1)]
+    p1, p2, p3 = [PikoValue(name, dxs, unit, wire_data=(wire_label, i)) for i, dxs in
+                  enumerate([dxs_wire_1, dxs_wire_2, dxs_wire_3], start=1)]
     return p1, p2, p3
 
 
-dc_phase_voltage = per_phase('DC_voltage', 'U', 33555202, 33555458, 33555714)
-dc_phase_current = per_phase('DC_current', 'I', 33555201, 33555457, 33555713)
-dc_phase_power = per_phase('DC_power', 'W', 33555203, 33555459, 33555715)
+dc_input_voltage = per_wire('DC_voltage', 'U', 'input', 33555202, 33555458, 33555714)
+dc_input_current = per_wire('DC_current', 'I', 'input', 33555201, 33555457, 33555713)
+dc_input_phase = per_wire('DC_power', 'W', 'input', 33555203, 33555459, 33555715)
 
 dc_power_total = PikoValue('DC_power_total', 33556736, 'W')
 
 ac_power_total = PikoValue('AC_power_total', 67109120, 'W')
 
-ac_phase_power = per_phase('AC_power', 'W', 67109379, 67109635, 67109891)
-ac_phase_current = per_phase('AC_current', 'A', 67109377, 67109633, 67109889)
-ac_phase_voltage = per_phase('AC_voltage', 'V', 67109378, 67109634, 67109890)
+ac_phase_power = per_wire('AC_power', 'W', 'phase', 67109379, 67109635, 67109891)
+ac_phase_current = per_wire('AC_current', 'A', 'phase', 67109377, 67109633, 67109889)
+ac_phase_voltage = per_wire('AC_voltage', 'V', 'phase', 67109378, 67109634, 67109890)
 
 ac_cos_phi = PikoValue('cos_phi', 67110656)
 status = PikoValue('status', 16780032, parse=PikoStatus)
@@ -113,7 +122,7 @@ ac_energy_total = PikoValue('AC_energy_total', 251658753, 'kWh')
 ac_energy_day = PikoValue('AC_energy_day', 251658754, 'Wh')
 operating_time = PikoValue('operating_time', 251658496, 'h')
 
-ALL_VALUES = [*dc_phase_voltage, *dc_phase_current, *dc_phase_power, dc_power_total, *ac_phase_voltage, *ac_phase_power,
+ALL_VALUES = [*dc_input_voltage, *dc_input_current, *dc_input_phase, dc_power_total, *ac_phase_voltage, *ac_phase_power,
               *ac_phase_current, ac_power_total,
               ac_cos_phi, status, ac_frequency,
               ac_energy_total, ac_energy_day,
