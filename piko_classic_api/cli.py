@@ -44,7 +44,11 @@ def export(interval, host, port):
     logging.info(f'polling http://{host} every {interval}s ...')
     while True:
         logging.debug('polling ...')
-        metrics.poll()
+        try:
+            metrics.poll()
+        except Exception as e:
+            logging.error('Exception polling PIKO:')
+            logging.error(e)
         time.sleep(interval)
 
 
