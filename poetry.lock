@@ -147,6 +147,20 @@ files = [
 ]
 
 [[package]]
+name = "prometheus-client"
+version = "0.17.1"
+description = "Python client for the Prometheus monitoring system."
+optional = true
+python-versions = ">=3.6"
+files = [
+    {file = "prometheus_client-0.17.1-py3-none-any.whl", hash = "sha256:e537f37160f6807b8202a6fc4764cdd19bac5480ddd3e0d463c3002b34462101"},
+    {file = "prometheus_client-0.17.1.tar.gz", hash = "sha256:21e674f39831ae3f8acde238afd9a27a37d0d2fb5a28ea094f0ce25d2cbf2091"},
+]
+
+[package.extras]
+twisted = ["twisted"]
+
+[[package]]
 name = "requests"
 version = "2.31.0"
 description = "Python HTTP for Humans."
@@ -184,7 +198,10 @@ secure = ["certifi", "cryptography (>=1.9)", "idna (>=2.0.0)", "pyopenssl (>=17.
 socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
+[extras]
+prometheus = ["prometheus-client"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "681313232aa173dc3fcfed50799fb91962d7a5672eaca41f1c7b31369311add1"
+content-hash = "7aedf13bb7f01209dd36f55e1521ce7a70f7127ba2a25abaaec0d4fc8920775d"
