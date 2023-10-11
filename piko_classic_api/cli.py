@@ -3,11 +3,20 @@ import time
 import click
 
 from piko_classic_api.livedata import get_live_data
+import logging
 
 
 @click.group
-def cli():
-    pass
+@click.option('-v', '--verbose', count=True)
+def cli(verbose):
+    match verbose:
+        case 0:
+            level = logging.WARNING
+        case 1:
+            level = logging.INFO
+        case _:
+            level = logging.DEBUG
+    logging.basicConfig(format='m(asctime)s %(levelname)s: %(message)s', level=level)
 
 
 @cli.command
@@ -30,9 +39,11 @@ def export(interval, host, port):
     prometheus_client.REGISTRY.unregister(prometheus_client.GC_COLLECTOR)
     prometheus_client.REGISTRY.unregister(prometheus_client.PLATFORM_COLLECTOR)
     prometheus_client.REGISTRY.unregister(prometheus_client.PROCESS_COLLECTOR)
-
+    logging.info(f'starting Prometheus exporter on port {port}')
     prometheus_client.start_http_server(port)
+    logging.info(f'polling http://{host} every {interval}s ...')
     while True:
+        logging.debug('polling ...')
         metrics.poll()
         time.sleep(interval)
 
