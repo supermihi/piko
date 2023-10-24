@@ -16,7 +16,7 @@ def cli(verbose):
             level = logging.INFO
         case _:
             level = logging.DEBUG
-    logging.basicConfig(format='m(asctime)s %(levelname)s: %(message)s', level=level)
+    logging.basicConfig(format='%m(asctime)s %(levelname)s: %(message)s', level=level)
 
 
 @cli.command
